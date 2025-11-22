@@ -1,0 +1,36 @@
+services:
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - ADDR=:8080
+      - DB_TYPE=postgres
+      - DATABASE_URL=postgres://pawtrack:pawtrack@db:5432/pawtrack?sslmode=disable
+      - RUN_MIGRATIONS=true
+      - SEED_ON_START=false
+      - JWT_SECRET=my-secret-key-change-in-production
+      - JWT_EXPIRY_HOURS=24
+      - MIGRATIONS_DIR=/srv/migrations
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_DB=pawtrack
+      - POSTGRES_USER=pawtrack
+      - POSTGRES_PASSWORD=pawtrack
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U pawtrack -d pawtrack" ]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  dbdata:

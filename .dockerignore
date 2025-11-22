@@ -1,0 +1,10 @@
+**/.git
+**/.github
+**/.idea
+**/.vscode
+**/bin
+**/tmp
+**/*.db
+**/*.sqlite
+**/node_modules
+**/.DS_Store

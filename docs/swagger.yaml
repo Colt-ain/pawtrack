@@ -1,0 +1,371 @@
+basePath: /api/v1
+definitions:
+  main.Dog:
+    properties:
+      birth_date:
+        example: "2020-01-01T00:00:00Z"
+        type: string
+      breed:
+        example: German Shepherd
+        type: string
+      created_at:
+        example: "2025-11-22T10:00:00Z"
+        type: string
+      id:
+        example: 1
+        type: integer
+      name:
+        example: Rex
+        type: string
+      updated_at:
+        example: "2025-11-22T10:00:00Z"
+        type: string
+    type: object
+  main.Event:
+    properties:
+      at:
+        example: "2025-11-22T10:00:00Z"
+        type: string
+      created_at:
+        example: "2025-11-22T10:00:00Z"
+        type: string
+      id:
+        example: 1
+        type: integer
+      note:
+        example: morning walk
+        type: string
+      type:
+        example: walk
+        type: string
+      updated_at:
+        example: "2025-11-22T10:00:00Z"
+        type: string
+    type: object
+  main.createDogRequest:
+    properties:
+      birth_date:
+        example: "2020-01-01T00:00:00Z"
+        type: string
+      breed:
+        example: German Shepherd
+        type: string
+      name:
+        example: Rex
+        maxLength: 255
+        minLength: 2
+        type: string
+    required:
+    - name
+    type: object
+  main.createEventRequest:
+    properties:
+      at:
+        description: если не задано — возьмём now()
+        example: "2025-11-22T18:00:00Z"
+        type: string
+      note:
+        example: dinner
+        type: string
+      type:
+        example: feed
+        maxLength: 32
+        minLength: 2
+        type: string
+    required:
+    - type
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API for tracking pet events.
+  title: Pawtrack API
+  version: "1.0"
+paths:
+  /dogs:
+    get:
+      description: Get a list of dogs
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/main.Dog'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List dogs
+      tags:
+      - dogs
+    post:
+      consumes:
+      - application/json
+      description: Create a new dog
+      parameters:
+      - description: Dog Data
+        in: body
+        name: dog
+        required: true
+        schema:
+          $ref: '#/definitions/main.createDogRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/main.Dog'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a new dog
+      tags:
+      - dogs
+  /dogs/{id}:
+    delete:
+      description: Delete a dog by ID
+      parameters:
+      - description: Dog ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete dog
+      tags:
+      - dogs
+    get:
+      description: Get details of a specific dog
+      parameters:
+      - description: Dog ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Dog'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get dog by ID
+      tags:
+      - dogs
+    put:
+      consumes:
+      - application/json
+      description: Update a dog by ID
+      parameters:
+      - description: Dog ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Dog Data
+        in: body
+        name: dog
+        required: true
+        schema:
+          $ref: '#/definitions/main.createDogRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Dog'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update dog
+      tags:
+      - dogs
+  /events:
+    get:
+      description: Get a list of events with optional filtering
+      parameters:
+      - default: 50
+        description: Limit
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: Offset
+        in: query
+        name: offset
+        type: integer
+      - description: Filter by type
+        in: query
+        name: type
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List events
+      tags:
+      - events
+    post:
+      consumes:
+      - application/json
+      description: Create a new pet event
+      parameters:
+      - description: Event Data
+        in: body
+        name: event
+        required: true
+        schema:
+          $ref: '#/definitions/main.createEventRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/main.Event'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a new event
+      tags:
+      - events
+  /events/{id}:
+    delete:
+      description: Delete an event by ID
+      parameters:
+      - description: Event ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete event
+      tags:
+      - events
+    get:
+      description: Get details of a specific event
+      parameters:
+      - description: Event ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Event'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get event by ID
+      tags:
+      - events
+  /health:
+    get:
+      description: Check service health and DB connection
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Health check
+      tags:
+      - system
+swagger: "2.0"
