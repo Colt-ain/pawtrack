@@ -65,6 +65,7 @@ func main() {
 	userRepo := repository.NewUserRepository(db)
 	consultantRepo := repository.NewConsultantRepository(db)
 	consultantNoteRepo := repository.NewConsultantNoteRepository(db)
+	eventCommentRepo := repository.NewEventCommentRepository(db)
 
 	// Services
 	authService := service.NewAuthService(userRepo)
@@ -73,6 +74,7 @@ func main() {
 	userService := service.NewUserService(userRepo)
 	consultantService := service.NewConsultantService(consultantRepo, dogRepo)
 	consultantNoteService := service.NewConsultantNoteService(consultantNoteRepo, dogRepo)
+	eventCommentService := service.NewEventCommentService(eventCommentRepo, eventRepo, dogRepo)
 
 	// Handlers
 	authHandler := handler.NewAuthHandler(authService)
@@ -82,9 +84,10 @@ func main() {
 	healthHandler := handler.NewHealthHandler(db)
 	consultantHandler := handler.NewConsultantHandler(consultantService)
 	consultantNoteHandler := handler.NewConsultantNoteHandler(consultantNoteService)
+	eventCommentHandler := handler.NewEventCommentHandler(eventCommentService)
 
 	// Router
-	r := handler.SetupRouter(eventHandler, dogHandler, userHandler, authHandler, healthHandler, consultantHandler, consultantNoteHandler, authService)
+	r := handler.SetupRouter(eventHandler, dogHandler, userHandler, authHandler, healthHandler, consultantHandler, consultantNoteHandler, eventCommentHandler, authService)
 
 	srv := &http.Server{Addr: addr, Handler: r}
 

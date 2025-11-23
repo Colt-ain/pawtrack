@@ -18,6 +18,7 @@ func SetupRouter(
 	healthHandler *HealthHandler,
 	consultantHandler *ConsultantHandler,
 	consultantNoteHandler *ConsultantNoteHandler,
+	eventCommentHandler *EventCommentHandler,
 	authService service.AuthService,
 ) *gin.Engine {
 	router := gin.New()
@@ -86,6 +87,13 @@ func SetupRouter(
 			protected.GET("/consultant-notes/:id", consultantNoteHandler.GetNote)
 			protected.PUT("/consultant-notes/:id", consultantNoteHandler.UpdateNote)
 			protected.DELETE("/consultant-notes/:id", consultantNoteHandler.DeleteNote)
+
+			// Event Comments - require authentication
+			protected.POST("/events/:id/comments", eventCommentHandler.CreateComment)
+			protected.GET("/events/:id/comments", eventCommentHandler.ListComments)
+			protected.GET("/event-comments/:id", eventCommentHandler.GetComment)
+			protected.PUT("/event-comments/:id", eventCommentHandler.UpdateComment)
+			protected.DELETE("/event-comments/:id", eventCommentHandler.DeleteComment)
 		}
 	}
 
