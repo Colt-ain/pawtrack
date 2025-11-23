@@ -1,6 +1,7 @@
 package service
 
 import (
+	"math"
 	"time"
 
 	"github.com/you/pawtrack/internal/dto"
@@ -11,7 +12,7 @@ import (
 // EventService interface for event business logic
 type EventService interface {
 	CreateEvent(req *dto.CreateEventRequest) (*models.Event, error)
-	ListEvents(limit, offset int, eventType string) ([]models.Event, error)
+	ListEvents(filters *dto.EventFilterParams) (*dto.EventListResponse, error)
 	GetEvent(id uint) (*models.Event, error)
 	DeleteEvent(id uint) error
 }
@@ -34,9 +35,10 @@ func (s *eventService) CreateEvent(req *dto.CreateEventRequest) (*models.Event, 
 	}
 
 	event := &models.Event{
-		Type: req.Type,
-		Note: req.Note,
-		At:   when,
+		DogID: req.DogID,
+		Type:  req.Type,
+		Note:  req.Note,
+		At:    when,
 	}
 
 	err := s.repo.Create(event)
@@ -47,9 +49,30 @@ func (s *eventService) CreateEvent(req *dto.CreateEventRequest) (*models.Event, 
 	return event, nil
 }
 
-// ListEvents returns a list of events
-func (s *eventService) ListEvents(limit, offset int, eventType string) ([]models.Event, error) {
-	return s.repo.List(limit, offset, eventType)
+// ListEvents returns a list of events with filtering and pagination
+func (s *eventService) ListEvents(filters *dto.EventFilterParams) (*dto.EventListResponse, error) {
+	// Set defaults
+	if filters.Page <= 0 {
+		filters.Page = 1
+	}
+	if filters.PageSize <= 0 {
+		filters.PageSize = 20
+	}
+
+	events, totalCount, err := s.repo.List(filters)
+	if err != nil {
+		return nil, err
+	}
+
+	totalPages := int(math.Ceil(float64(totalCount) / float64(filters.PageSize)))
+
+	return &dto.EventListResponse{
+		Events:     events,
+		Page:       filters.Page,
+		PageSize:   filters.PageSize,
+		TotalCount: totalCount,
+		TotalPages: totalPages,
+	}, nil
 }
 
 // GetEvent returns an event by ID

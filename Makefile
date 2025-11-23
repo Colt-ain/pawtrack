@@ -29,8 +29,15 @@ docker-up:
 docker-down:
 	docker compose down -v
 
-# Dev seed (локально): заполняет несколько событий, если таблица пуста
+# Dev seed (local): populates some events if table is empty
 seed:
 	DB_TYPE=sqlite SEED_ON_START=true go run ./main.go & 
 	sleep 1 && curl -s http://localhost:8080/health >/dev/null || true 
 	kill $$! || true
+
+# Run E2E tests (requires docker-up)
+test-e2e:
+	docker run --rm -v $$(pwd):/app -w /app --network pawtrack_default \
+		-e E2E_BASE_URL="http://app:8080/api/v1" \
+		-e E2E_DB_DSN="postgres://pawtrack:pawtrack@db:5432/pawtrack?sslmode=disable" \
+		golang:1.23 go test -v ./tests/e2e/...

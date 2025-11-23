@@ -12,6 +12,7 @@ type DogRepository interface {
 	GetByID(id uint) (*models.Dog, error)
 	Update(dog *models.Dog) error
 	Delete(id uint) error
+	HasConsultantAccess(consultantID, dogID uint) (bool, error)
 }
 
 // dogRepository implementation of the dog repository
@@ -54,4 +55,13 @@ func (r *dogRepository) Update(dog *models.Dog) error {
 // Delete deletes a dog
 func (r *dogRepository) Delete(id uint) error {
 	return r.db.Delete(&models.Dog{}, id).Error
+}
+
+// HasConsultantAccess checks if a consultant has access to a dog
+func (r *dogRepository) HasConsultantAccess(consultantID, dogID uint) (bool, error) {
+	var count int64
+	err := r.db.Table("consultant_access").
+		Where("consultant_id = ? AND dog_id = ? AND revoked_at IS NULL", consultantID, dogID).
+		Count(&count).Error
+	return count > 0, err
 }

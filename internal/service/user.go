@@ -2,12 +2,12 @@ package service
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/you/pawtrack/internal/dto"
 	"github.com/you/pawtrack/internal/models"
 	"github.com/you/pawtrack/internal/repository"
 	"golang.org/x/crypto/bcrypt"
-	"gorm.io/gorm"
 )
 
 // UserService interface for user business logic
@@ -108,17 +108,12 @@ func (s *userService) DeleteUser(id uint) error {
 	return s.repo.Delete(id)
 }
 
-// IsDuplicateKeyError checks if the error is a duplicate key error
+// IsDuplicateKeyError checks if the error is a database duplicate key error
 func IsDuplicateKeyError(err error) bool {
 	if err == nil {
 		return false
 	}
-	if errors.Is(err, gorm.ErrDuplicatedKey) {
-		return true
-	}
 	// Check error message for different databases
 	errStr := err.Error()
-	return len(errStr) > 0 && (
-		(len(errStr) >= 6 && errStr[:6] == "UNIQUE") ||
-		(len(errStr) >= 9 && errStr[:9] == "duplicate"))
+	return len(errStr) > 0 && (strings.HasPrefix(errStr, "UNIQUE") || strings.HasPrefix(errStr, "duplicate"))
 }

@@ -1,9 +1,9 @@
-# pawtrack — маленький Go‑сервис для учёта собачьих событий 🐾
+# pawtrack — small Go service for pet event tracking 🐾
 
-API для записи прогулок, кормлений, лекарств и любых "событий" питомца.
-Стек: **Go 1.23**, **Gin**, **GORM + SQLite/Postgres**.
+API for tracking walks, feedings, meds, and any other pet "events".
+Stack: **Go 1.23**, **Gin**, **GORM + SQLite/Postgres**.
 
-## Быстрый старт (локально, SQLite)
+## Quick Start (Local, SQLite)
 ```bash
 make deps
 make run
@@ -22,32 +22,33 @@ docker compose up --build
 # API: http://localhost:8080
 ```
 
-## Миграции (golang-migrate)
-- Миграции лежат в `./migrations`.
-- Запуск при старте включается `RUN_MIGRATIONS=true` (по умолчанию `false`).
-- Путь к миграциям можно переопределить через `MIGRATIONS_DIR`.
+## Migrations (golang-migrate)
+- Migrations are located in `./migrations`.
+- Run on start is enabled by `RUN_MIGRATIONS=true` (default `false`).
+- Migration path can be overridden via `MIGRATIONS_DIR`.
 
-Примеры:
+Examples:
 ```bash
-# SQLite (локально)
+# SQLite (local)
 export DB_TYPE=sqlite
 export RUN_MIGRATIONS=true
 go run ./main.go
 
-# Postgres через docker-compose
+# Postgres via docker-compose
 docker compose up --build
-# (в compose уже выставлено RUN_MIGRATIONS=true)
+# (RUN_MIGRATIONS=true is already set in compose)
 ```
 
-## Seed (демо-данные)
-Поставь `SEED_ON_START=true` — при пустой таблице в неё добавятся 3 записи.
-Не включай в продакшене :)
+## Seed (demo data)
+Set `SEED_ON_START=true` — if table is empty, 3 records will be added.
+Do not enable in production :)
 
 ## Testing Scripts
 Verification scripts are located in `./scripts/`:
 - `scripts/verify_api.sh` - Basic API health check
 - `scripts/verify_dogs.sh` - Test all Dog CRUD endpoints
 - `scripts/verify_users.sh` - Test all User CRUD endpoints
+- `scripts/verify_event_filters.sh` - Test event filtering and authorization
 
 Usage:
 ```bash
@@ -56,10 +57,10 @@ bash scripts/verify_users.sh
 ```
 
 ## ENV
-- `ADDR` — адрес HTTP сервера (по умолчанию `:8080`)
-- `DB_TYPE` — `sqlite` (по умолчанию) или `postgres`
-- `SQLITE_DSN` — для SQLite (`file:pawtrack.db?_busy_timeout=5000&_fk=1`)
-- `DATABASE_URL` — для Postgres (например, `postgres://pawtrack:pawtrack@db:5432/pawtrack?sslmode=disable`)
-- `RUN_MIGRATIONS` — `true/false` (запуск миграций при старте)
-- `MIGRATIONS_DIR` — путь к миграциям (по умолчанию `./migrations`)
-- `SEED_ON_START` — `true/false` (добавить демо-записи при пустой таблице)
+- `ADDR` — HTTP server address (default `:8080`)
+- `DB_TYPE` — `sqlite` (default) or `postgres`
+- `SQLITE_DSN` — for SQLite (`file:pawtrack.db?_busy_timeout=5000&_fk=1`)
+- `DATABASE_URL` — for Postgres (e.g., `postgres://pawtrack:pawtrack@db:5432/pawtrack?sslmode=disable`)
+- `RUN_MIGRATIONS` — `true/false` (run migrations on start)
+- `MIGRATIONS_DIR` — path to migrations (default `./migrations`)
+- `SEED_ON_START` — `true/false` (add demo records if table is empty)

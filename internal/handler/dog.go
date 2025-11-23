@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/you/pawtrack/internal/dto"
+	"github.com/you/pawtrack/internal/middleware"
 	"github.com/you/pawtrack/internal/service"
 	"github.com/you/pawtrack/internal/utils"
 	"gorm.io/gorm"
@@ -90,10 +91,25 @@ func (h *DogHandler) ListDogs(c *gin.Context) {
 func (h *DogHandler) GetDog(c *gin.Context) {
 	id := uint(utils.Atoi(c.Param("id")))
 
-	dog, err := h.service.GetDog(id)
+	userID, err := middleware.GetUserIDFromContext(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+	role, err := middleware.GetUserRoleFromContext(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	dog, err := h.service.GetDog(id, userID, role)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
+			return
+		}
+		if err.Error() == "unauthorized" {
+			c.JSON(http.StatusNotFound, gin.H{"error": "not found"}) // Return 404 to avoid leaking existence
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "db query failed"})
@@ -119,16 +135,35 @@ func (h *DogHandler) GetDog(c *gin.Context) {
 func (h *DogHandler) UpdateDog(c *gin.Context) {
 	id := uint(utils.Atoi(c.Param("id")))
 
+	userID, err := middleware.GetUserIDFromContext(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+	role, err := middleware.GetUserRoleFromContext(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
 	var req dto.UpdateDogRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	dog, err := h.service.UpdateDog(id, &req)
+	dog, err := h.service.UpdateDog(id, &req, userID, role)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
+			return
+		}
+		if err.Error() == "unauthorized" {
+			c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
+			return
+		}
+		if err.Error() == "unauthorized: consultants cannot update dogs" {
+			c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
 			return
 		}
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid birth_date format, use RFC3339"})
@@ -150,8 +185,27 @@ func (h *DogHandler) UpdateDog(c *gin.Context) {
 func (h *DogHandler) DeleteDog(c *gin.Context) {
 	id := uint(utils.Atoi(c.Param("id")))
 
-	err := h.service.DeleteDog(id)
+	userID, err := middleware.GetUserIDFromContext(c)
 	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+	role, err := middleware.GetUserRoleFromContext(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	err = h.service.DeleteDog(id, userID, role)
+	if err != nil {
+		if err.Error() == "unauthorized" {
+			c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
+			return
+		}
+		if err.Error() == "unauthorized: consultants cannot delete dogs" {
+			c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "db delete failed"})
 		return
 	}

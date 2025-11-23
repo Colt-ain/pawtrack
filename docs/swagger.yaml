@@ -1,48 +1,6 @@
 basePath: /api/v1
 definitions:
-  main.Dog:
-    properties:
-      birth_date:
-        example: "2020-01-01T00:00:00Z"
-        type: string
-      breed:
-        example: German Shepherd
-        type: string
-      created_at:
-        example: "2025-11-22T10:00:00Z"
-        type: string
-      id:
-        example: 1
-        type: integer
-      name:
-        example: Rex
-        type: string
-      updated_at:
-        example: "2025-11-22T10:00:00Z"
-        type: string
-    type: object
-  main.Event:
-    properties:
-      at:
-        example: "2025-11-22T10:00:00Z"
-        type: string
-      created_at:
-        example: "2025-11-22T10:00:00Z"
-        type: string
-      id:
-        example: 1
-        type: integer
-      note:
-        example: morning walk
-        type: string
-      type:
-        example: walk
-        type: string
-      updated_at:
-        example: "2025-11-22T10:00:00Z"
-        type: string
-    type: object
-  main.createDogRequest:
+  dto.CreateDogRequest:
     properties:
       birth_date:
         example: "2020-01-01T00:00:00Z"
@@ -58,23 +16,210 @@ definitions:
     required:
     - name
     type: object
-  main.createEventRequest:
+  dto.CreateEventRequest:
     properties:
       at:
-        description: если не задано — возьмём now()
-        example: "2025-11-22T18:00:00Z"
+        example: "2025-11-22T10:00:00Z"
         type: string
+      dog_id:
+        example: 1
+        type: integer
       note:
-        example: dinner
+        example: morning walk
+        maxLength: 255
         type: string
       type:
-        example: feed
-        maxLength: 32
-        minLength: 2
+        example: walk
+        maxLength: 50
         type: string
     required:
     - type
     type: object
+  dto.CreateUserRequest:
+    properties:
+      email:
+        example: john@example.com
+        maxLength: 255
+        type: string
+      name:
+        example: John Doe
+        maxLength: 255
+        minLength: 2
+        type: string
+      password:
+        example: securepassword123
+        maxLength: 100
+        minLength: 6
+        type: string
+      role:
+        allOf:
+        - $ref: '#/definitions/models.UserRole'
+        enum:
+        - owner
+        - consultant
+        example: owner
+    required:
+    - email
+    - name
+    - password
+    type: object
+  dto.EventListResponse:
+    properties:
+      events:
+        items:
+          $ref: '#/definitions/models.Event'
+        type: array
+      page:
+        type: integer
+      page_size:
+        type: integer
+      total_count:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  dto.UpdateDogRequest:
+    properties:
+      birth_date:
+        example: "2020-01-01T00:00:00Z"
+        type: string
+      breed:
+        example: German Shepherd
+        type: string
+      name:
+        example: Rex
+        maxLength: 255
+        minLength: 2
+        type: string
+    required:
+    - name
+    type: object
+  dto.UpdateUserRequest:
+    properties:
+      email:
+        example: john@example.com
+        maxLength: 255
+        type: string
+      name:
+        example: John Doe
+        maxLength: 255
+        minLength: 2
+        type: string
+      password:
+        example: newpassword123
+        maxLength: 100
+        minLength: 6
+        type: string
+    type: object
+  handler.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  handler.LoginResponse:
+    properties:
+      token:
+        type: string
+      user: {}
+    type: object
+  handler.healthResponse:
+    properties:
+      db:
+        type: string
+      now:
+        type: string
+      ok:
+        type: boolean
+    type: object
+  models.Dog:
+    properties:
+      birth_date:
+        example: "2020-01-01T00:00:00Z"
+        type: string
+      breed:
+        example: Golden Retriever
+        type: string
+      created_at:
+        example: "2025-11-22T10:00:00Z"
+        type: string
+      id:
+        example: 1
+        type: integer
+      name:
+        example: Rex
+        type: string
+      owner:
+        $ref: '#/definitions/models.User'
+      owner_id:
+        example: 1
+        type: integer
+      updated_at:
+        example: "2025-11-22T10:00:00Z"
+        type: string
+    type: object
+  models.Event:
+    properties:
+      at:
+        example: "2025-11-22T10:00:00Z"
+        type: string
+      created_at:
+        example: "2025-11-22T10:00:00Z"
+        type: string
+      dog:
+        $ref: '#/definitions/models.Dog'
+      dog_id:
+        example: 1
+        type: integer
+      id:
+        example: 1
+        type: integer
+      note:
+        example: morning walk
+        type: string
+      type:
+        example: walk
+        type: string
+      updated_at:
+        example: "2025-11-22T10:00:00Z"
+        type: string
+    type: object
+  models.User:
+    properties:
+      created_at:
+        example: "2025-11-22T10:00:00Z"
+        type: string
+      email:
+        example: john@example.com
+        type: string
+      id:
+        example: 1
+        type: integer
+      name:
+        example: John Doe
+        type: string
+      role:
+        allOf:
+        - $ref: '#/definitions/models.UserRole'
+        example: owner
+      updated_at:
+        example: "2025-11-22T10:00:00Z"
+        type: string
+    type: object
+  models.UserRole:
+    enum:
+    - owner
+    - consultant
+    - admin
+    type: string
+    x-enum-varnames:
+    - RoleOwner
+    - RoleConsultant
+    - RoleAdmin
 host: localhost:8080
 info:
   contact: {}
@@ -82,6 +227,40 @@ info:
   title: Pawtrack API
   version: "1.0"
 paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate with email and password, returns JWT token
+      parameters:
+      - description: Login Credentials
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/handler.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: User login
+      tags:
+      - auth
   /dogs:
     get:
       description: Get a list of dogs
@@ -92,7 +271,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/main.Dog'
+              $ref: '#/definitions/models.Dog'
             type: array
         "500":
           description: Internal Server Error
@@ -106,23 +285,35 @@ paths:
     post:
       consumes:
       - application/json
-      description: Create a new dog
+      description: Create a new dog (requires authentication and owner role)
       parameters:
       - description: Dog Data
         in: body
         name: dog
         required: true
         schema:
-          $ref: '#/definitions/main.createDogRequest'
+          $ref: '#/definitions/dto.CreateDogRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/main.Dog'
+            $ref: '#/definitions/models.Dog'
         "400":
           description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
           schema:
             additionalProperties:
               type: string
@@ -133,6 +324,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Create a new dog
       tags:
       - dogs
@@ -173,7 +366,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/main.Dog'
+            $ref: '#/definitions/models.Dog'
         "404":
           description: Not Found
           schema:
@@ -204,14 +397,14 @@ paths:
         name: dog
         required: true
         schema:
-          $ref: '#/definitions/main.createDogRequest'
+          $ref: '#/definitions/dto.UpdateDogRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/main.Dog'
+            $ref: '#/definitions/models.Dog'
         "400":
           description: Bad Request
           schema:
@@ -235,21 +428,51 @@ paths:
       - dogs
   /events:
     get:
-      description: Get a list of events with optional filtering
+      description: Get paginated events with filters and sorting
       parameters:
-      - default: 50
-        description: Limit
+      - description: From date (YYYY-MM-DD)
         in: query
-        name: limit
+        name: from_date
+        type: string
+      - description: To date (YYYY-MM-DD)
+        in: query
+        name: to_date
+        type: string
+      - description: Event types (comma-separated)
+        in: query
+        name: types
+        type: string
+      - description: Search in notes and dog names
+        in: query
+        name: search
+        type: string
+      - description: Filter by dog name
+        in: query
+        name: dog_name
+        type: string
+      - default: 1
+        description: Page number
+        in: query
+        name: page
         type: integer
-      - default: 0
-        description: Offset
+      - default: 20
+        description: Page size
         in: query
-        name: offset
+        name: page_size
         type: integer
-      - description: Filter by type
+      - description: Sort by field
+        enum:
+        - created_at
+        - type
         in: query
-        name: type
+        name: sort_by
+        type: string
+      - description: Sort order
+        enum:
+        - asc
+        - desc
+        in: query
+        name: sort_order
         type: string
       produces:
       - application/json
@@ -257,7 +480,12 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties: true
+            $ref: '#/definitions/dto.EventListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
             type: object
         "500":
           description: Internal Server Error
@@ -265,7 +493,7 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: List events
+      summary: List events with filtering
       tags:
       - events
     post:
@@ -278,14 +506,14 @@ paths:
         name: event
         required: true
         schema:
-          $ref: '#/definitions/main.createEventRequest'
+          $ref: '#/definitions/dto.CreateEventRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/main.Event'
+            $ref: '#/definitions/models.Event'
         "400":
           description: Bad Request
           schema:
@@ -338,7 +566,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/main.Event'
+            $ref: '#/definitions/models.Event'
         "404":
           description: Not Found
           schema:
@@ -363,9 +591,159 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/handler.healthResponse'
       summary: Health check
       tags:
       - system
+  /users:
+    get:
+      description: Get a list of all users
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.User'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List users
+      tags:
+      - users
+    post:
+      consumes:
+      - application/json
+      description: Register a new user with email and password
+      parameters:
+      - description: User Data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a new user
+      tags:
+      - users
+  /users/{id}:
+    delete:
+      description: Delete a user by ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete user
+      tags:
+      - users
+    get:
+      description: Get details of a specific user
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get user by ID
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      description: Update a user by ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: User Data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update user
+      tags:
+      - users
 swagger: "2.0"

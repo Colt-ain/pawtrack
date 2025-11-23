@@ -1,6 +1,6 @@
 -- initial schema
 
--- Postgres и SQLite совместимый синтаксис
+-- Postgres and SQLite compatible syntax
 CREATE TABLE IF NOT EXISTS events (
   id         INTEGER PRIMARY KEY,
   type       TEXT NOT NULL,

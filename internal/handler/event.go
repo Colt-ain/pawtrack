@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/you/pawtrack/internal/dto"
+	"github.com/you/pawtrack/internal/middleware"
 	"github.com/you/pawtrack/internal/service"
 	"github.com/you/pawtrack/internal/utils"
 	"gorm.io/gorm"
@@ -49,28 +50,52 @@ func (h *EventHandler) CreateEvent(c *gin.Context) {
 }
 
 // ListEvents godoc
-// @Summary      List events
-// @Description  Get a list of events with optional filtering
+// @Summary      List events with filtering
+// @Description  Get paginated events with filters and sorting
 // @Tags         events
 // @Produce      json
-// @Param        limit   query     int     false  "Limit"  default(50)
-// @Param        offset  query     int     false  "Offset" default(0)
-// @Param        type    query     string  false  "Filter by type"
-// @Success      200     {object}  map[string]interface{}
-// @Failure      500     {object}  map[string]string
+// @Param        from_date    query     string  false  "From date (YYYY-MM-DD)"
+// @Param        to_date      query     string  false  "To date (YYYY-MM-DD)"
+// @Param        types        query     string  false  "Event types (comma-separated)"
+// @Param        search       query     string  false  "Search in notes and dog names"
+// @Param        dog_name     query     string  false  "Filter by dog name"
+// @Param        page         query     int     false  "Page number" default(1)
+// @Param        page_size    query     int     false  "Page size" default(20)
+// @Param        sort_by      query     string  false  "Sort by field" Enums(created_at, type)
+// @Param        sort_order   query     string  false  "Sort order" Enums(asc, desc)
+// @Success      200          {object}  dto.EventListResponse
+// @Failure      400          {object}  map[string]string
+// @Failure      500          {object}  map[string]string
 // @Router       /events [get]
 func (h *EventHandler) ListEvents(c *gin.Context) {
-	limit := utils.ClampAtoi(c.DefaultQuery("limit", "50"), 1, 200)
-	offset := utils.Max(utils.Atoi(c.DefaultQuery("offset", "0")), 0)
-	eventType := c.Query("type")
-
-	events, err := h.service.ListEvents(limit, offset, eventType)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "db query failed"})
+	var filters dto.EventFilterParams
+	if err := c.ShouldBindQuery(&filters); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"items": events, "limit": limit, "offset": offset})
+	// Get user context
+	userID, err := middleware.GetUserIDFromContext(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+	userRole, err := middleware.GetUserRoleFromContext(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	filters.UserID = userID
+	filters.UserRole = userRole
+
+	response, err := h.service.ListEvents(&filters)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to list events"})
+		return
+	}
+
+	c.JSON(http.StatusOK, response)
 }
 
 // GetEvent godoc

@@ -155,9 +155,9 @@ func seedIfEmpty(db *gorm.DB) error {
 	}
 	now := time.Now().UTC()
 	data := []models.Event{
-		{Type: "walk", Note: "утренняя прогулка", At: now.Add(-6 * time.Hour)},
-		{Type: "feed", Note: "кормление 150г", At: now.Add(-5 * time.Hour)},
-		{Type: "meds", Note: "таблетка в 20:00", At: now.Add(-15 * time.Hour)},
+		{Type: "walk", Note: "morning walk", At: now.Add(-6 * time.Hour)},
+		{Type: "feed", Note: "feeding 150g", At: now.Add(-5 * time.Hour)},
+		{Type: "meds", Note: "pill at 20:00", At: now.Add(-15 * time.Hour)},
 	}
 	return db.Create(&data).Error
 }
