@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/you/pawtrack/internal/handler"
+	"github.com/you/pawtrack/internal/middleware"
 	"github.com/you/pawtrack/internal/models"
 	"github.com/you/pawtrack/internal/repository"
 	"github.com/you/pawtrack/internal/service"
@@ -67,13 +68,17 @@ func main() {
 	consultantRepo := repository.NewConsultantRepository(db)
 	consultantNoteRepo := repository.NewConsultantNoteRepository(db)
 	eventCommentRepo := repository.NewEventCommentRepository(db)
+	permissionRepo := repository.NewPermissionRepository(db)
+
+	// Initialize permission middleware
+	middleware.InitPermissionMiddleware(permissionRepo)
 
 	// Services
-	authService := service.NewAuthService(userRepo)
+	authService := service.NewAuthService(userRepo, permissionRepo)
 	eventService := service.NewEventService(eventRepo)
 	dogService := service.NewDogService(dogRepo)
-	userService := service.NewUserService(userRepo)
-	consultantService := service.NewConsultantService(consultantRepo, dogRepo)
+	userService := service.NewUserService(userRepo, permissionRepo)
+	consultantService := service.NewConsultantService(consultantRepo, dogRepo, permissionRepo)
 	consultantNoteService := service.NewConsultantNoteService(consultantNoteRepo, dogRepo)
 	eventCommentService := service.NewEventCommentService(eventCommentRepo, eventRepo, dogRepo)
 

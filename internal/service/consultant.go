@@ -6,6 +6,7 @@ import (
 
 	"github.com/you/pawtrack/internal/dto"
 	"github.com/you/pawtrack/internal/models"
+	"github.com/you/pawtrack/internal/permissions"
 	"github.com/you/pawtrack/internal/repository"
 	"github.com/you/pawtrack/internal/utils"
 	"gorm.io/gorm"
@@ -20,12 +21,17 @@ type ConsultantService interface {
 }
 
 type consultantService struct {
-	repo    repository.ConsultantRepository
-	dogRepo repository.DogRepository // Need to grant access
+	repo     repository.ConsultantRepository
+	dogRepo  repository.DogRepository
+	permRepo repository.PermissionRepository
 }
 
-func NewConsultantService(repo repository.ConsultantRepository, dogRepo repository.DogRepository) ConsultantService {
-	return &consultantService{repo: repo, dogRepo: dogRepo}
+func NewConsultantService(repo repository.ConsultantRepository, dogRepo repository.DogRepository, permRepo repository.PermissionRepository) ConsultantService {
+	return &consultantService{
+		repo:     repo,
+		dogRepo:  dogRepo,
+		permRepo: permRepo,
+	}
 }
 
 func (s *consultantService) UpdateProfile(userID uint, req *dto.UpdateProfileRequest) (*models.ConsultantProfile, error) {
@@ -137,10 +143,14 @@ func (s *consultantService) AcceptInvite(token string, consultantID uint) error 
 	// Wait, we have `consultant_access` table. We should use it.
 	// Let's add `GrantConsultantAccess` to DogRepository.
 
+	// Grant consultant access to the dog
 	err = s.dogRepo.GrantConsultantAccess(consultantID, invite.DogID)
 	if err != nil {
 		return err
 	}
+
+	// Grant assigned permissions to consultant
+	s.permRepo.GrantPermissions(consultantID, permissions.ConsultantAssignedPermissions)
 
 	invite.Status = models.InviteAccepted
 	return s.repo.UpdateInviteStatus(invite)

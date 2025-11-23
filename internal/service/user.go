@@ -6,6 +6,7 @@ import (
 
 	"github.com/you/pawtrack/internal/dto"
 	"github.com/you/pawtrack/internal/models"
+	"github.com/you/pawtrack/internal/permissions"
 	"github.com/you/pawtrack/internal/repository"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -21,12 +22,16 @@ type UserService interface {
 
 // userService implementation of the user service
 type userService struct {
-	repo repository.UserRepository
+	repo     repository.UserRepository
+	permRepo repository.PermissionRepository
 }
 
 // NewUserService creates a new user service
-func NewUserService(repo repository.UserRepository) UserService {
-	return &userService{repo: repo}
+func NewUserService(repo repository.UserRepository, permRepo repository.PermissionRepository) UserService {
+	return &userService{
+		repo:     repo,
+		permRepo: permRepo,
+	}
 }
 
 // CreateUser creates a new user
@@ -58,6 +63,21 @@ func (s *userService) CreateUser(req *dto.CreateUserRequest) (*models.User, erro
 	err = s.repo.Create(user)
 	if err != nil {
 		return nil, err
+	}
+
+	// Grant permissions based on role
+	var permissionsToGrant []string
+	switch role {
+	case models.RoleOwner:
+		permissionsToGrant = permissions.OwnerPermissions
+	case models.RoleConsultant:
+		permissionsToGrant = permissions.ConsultantBasePermissions
+	case models.RoleAdmin:
+		permissionsToGrant = permissions.AdminPermissions
+	}
+
+	if len(permissionsToGrant) > 0 {
+		s.permRepo.GrantPermissions(user.ID, permissionsToGrant)
 	}
 
 	return user, nil
