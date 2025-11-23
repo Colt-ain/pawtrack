@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 
@@ -8,16 +9,21 @@ import (
 	"github.com/you/pawtrack/internal/dto"
 	"github.com/you/pawtrack/internal/middleware"
 	"github.com/you/pawtrack/internal/service"
+	"github.com/you/pawtrack/internal/storage"
 	"github.com/you/pawtrack/internal/utils"
 	"gorm.io/gorm"
 )
 
 type EventCommentHandler struct {
 	service service.EventCommentService
+	storage storage.FileStorage
 }
 
-func NewEventCommentHandler(service service.EventCommentService) *EventCommentHandler {
-	return &EventCommentHandler{service: service}
+func NewEventCommentHandler(service service.EventCommentService, storage storage.FileStorage) *EventCommentHandler {
+	return &EventCommentHandler{
+		service: service,
+		storage: storage,
+	}
 }
 
 // CreateComment godoc
@@ -50,10 +56,55 @@ func (h *EventCommentHandler) CreateComment(c *gin.Context) {
 		return
 	}
 
+	// Check if this is multipart or JSON
+	contentType := c.GetHeader("Content-Type")
 	var req dto.CreateCommentRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+
+	if contentType == "application/json" {
+		// Legacy JSON support
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+	} else {
+		// Multipart form
+		if err := c.Request.ParseMultipartForm(32 << 20); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "failed to parse form"})
+			return
+		}
+
+		// Parse JSON data from form field
+		dataStr := c.PostForm("data")
+		if dataStr == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "missing data field"})
+			return
+		}
+
+		if err := json.Unmarshal([]byte(dataStr), &req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid JSON in data field"})
+			return
+		}
+
+		// Handle file upload if present
+		file, header, err := c.Request.FormFile("file")
+		if err == nil {
+			defer file.Close()
+
+			// Validate file
+			if err := utils.ValidateFile(file, header); err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				return
+			}
+
+			// Upload file
+			fileURL, err := h.storage.Upload(file, header.Filename, header.Header.Get("Content-Type"))
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to upload file"})
+				return
+			}
+
+			req.AttachmentURL = &fileURL
+		}
 	}
 
 	// Override event_id from URL

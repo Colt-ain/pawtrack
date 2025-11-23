@@ -6,6 +6,7 @@ import "time"
 type CreateCommentRequest struct {
 	EventID uint   `json:"event_id" binding:"required"`
 	Content string `json:"content" binding:"required"`
+	AttachmentURL *string `json:"-"` // Set by handler after upload
 }
 
 // UpdateCommentRequest for updating an event comment

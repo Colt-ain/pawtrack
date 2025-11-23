@@ -39,6 +39,7 @@ func (s *eventService) CreateEvent(req *dto.CreateEventRequest) (*models.Event, 
 		Type:  req.Type,
 		Note:  req.Note,
 		At:    when,
+		AttachmentURL: req.AttachmentURL,
 	}
 
 	err := s.repo.Create(event)

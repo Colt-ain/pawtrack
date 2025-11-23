@@ -10,6 +10,7 @@ type EventComment struct {
 	UserID    uint      `json:"user_id" gorm:"not null;index"`
 	User      *User     `json:"user,omitempty" gorm:"foreignKey:UserID"`
 	Content   string    `json:"content" gorm:"type:text;not null"` // Markdown content
+	AttachmentURL *string `json:"attachment_url,omitempty" gorm:"size:500"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }

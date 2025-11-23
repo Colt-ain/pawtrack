@@ -15,6 +15,7 @@ import (
 	"github.com/you/pawtrack/internal/models"
 	"github.com/you/pawtrack/internal/repository"
 	"github.com/you/pawtrack/internal/service"
+	"github.com/you/pawtrack/internal/storage"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -76,15 +77,34 @@ func main() {
 	consultantNoteService := service.NewConsultantNoteService(consultantNoteRepo, dogRepo)
 	eventCommentService := service.NewEventCommentService(eventCommentRepo, eventRepo, dogRepo)
 
+	// Storage
+	var fileStorage storage.FileStorage
+	storageType := getenv("STORAGE_TYPE", "local")
+	if storageType == "s3" {
+		s3Storage, err := storage.NewS3Storage(
+			getenv("AWS_REGION", "us-east-1"),
+			getenv("AWS_S3_BUCKET", ""),
+		)
+		if err != nil {
+			log.Fatalf("failed to initialize S3 storage: %v", err)
+		}
+		fileStorage = s3Storage
+	} else {
+		fileStorage = storage.NewLocalStorage(
+			getenv("UPLOAD_DIR", "./uploads"),
+			getenv("BASE_URL", "http://localhost:8080"),
+		)
+	}
+
 	// Handlers
 	authHandler := handler.NewAuthHandler(authService)
-	eventHandler := handler.NewEventHandler(eventService)
+	eventHandler := handler.NewEventHandler(eventService, fileStorage)
 	dogHandler := handler.NewDogHandler(dogService)
 	userHandler := handler.NewUserHandler(userService)
 	healthHandler := handler.NewHealthHandler(db)
 	consultantHandler := handler.NewConsultantHandler(consultantService)
 	consultantNoteHandler := handler.NewConsultantNoteHandler(consultantNoteService)
-	eventCommentHandler := handler.NewEventCommentHandler(eventCommentService)
+	eventCommentHandler := handler.NewEventCommentHandler(eventCommentService, fileStorage)
 
 	// Router
 	r := handler.SetupRouter(eventHandler, dogHandler, userHandler, authHandler, healthHandler, consultantHandler, consultantNoteHandler, eventCommentHandler, authService)

@@ -24,6 +24,9 @@ func SetupRouter(
 	router := gin.New()
 	router.Use(gin.Logger(), gin.Recovery())
 
+	// Serve uploaded files (for local storage)
+	router.Static("/uploads", "./uploads")
+
 	// Health check
 	router.GET("/health", healthHandler.HealthCheck)
 

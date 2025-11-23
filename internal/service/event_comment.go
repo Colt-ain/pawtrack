@@ -89,6 +89,7 @@ func (s *eventCommentService) CreateComment(req *dto.CreateCommentRequest, userI
 		EventID: req.EventID,
 		UserID:  userID,
 		Content: req.Content,
+		AttachmentURL: req.AttachmentURL,
 	}
 
 	if err := s.commentRepo.Create(comment); err != nil {

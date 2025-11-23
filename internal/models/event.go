@@ -11,6 +11,7 @@ type Event struct {
 	Type      string    `json:"type" gorm:"size:50;not null" example:"walk"`
 	Note      string    `json:"note" gorm:"size:255" example:"morning walk"`
 	At        time.Time `json:"at" gorm:"not null" example:"2025-11-22T10:00:00Z"`
+	AttachmentURL *string `json:"attachment_url,omitempty" gorm:"size:500" example:"https://example.com/file.jpg"`
 	CreatedAt time.Time `json:"created_at" example:"2025-11-22T10:00:00Z"`
 	UpdatedAt time.Time `json:"updated_at" example:"2025-11-22T10:00:00Z"`
 }
