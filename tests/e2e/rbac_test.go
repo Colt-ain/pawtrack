@@ -12,16 +12,21 @@ import (
 )
 
 func TestRBAC(t *testing.T) {
-	clientA := NewTestClient(t, BaseURL)
-	clientB := NewTestClient(t, BaseURL)
+	clientA := NewTestClient(BaseURL)
+	clientA.SetT(t)
+
+	clientA.SetT(t)
+
+	clientB := NewTestClient(BaseURL)
+	clientB.SetT(t)
 
 	// Register Owner A
 	emailA := fmt.Sprintf("owner_a_%d@example.com", time.Now().UnixNano())
-	clientA.RegisterAndLogin("Owner A", emailA, "password123")
+	clientA.RegisterAndLogin("Owner A", emailA, "password123", "owner")
 
 	// Register Owner B
 	emailB := fmt.Sprintf("owner_b_%d@example.com", time.Now().UnixNano())
-	clientB.RegisterAndLogin("Owner B", emailB, "password123")
+	clientB.RegisterAndLogin("Owner B", emailB, "password123", "owner")
 
 	// Owner A creates Dog
 	var dogID float64
@@ -44,7 +49,8 @@ func TestRBAC(t *testing.T) {
 	})
 
 	// Consultant Access
-	clientC := NewTestClient(t, BaseURL)
+	clientC := NewTestClient(BaseURL)
+	clientC.SetT(t)
 	emailC := fmt.Sprintf("consultant_%d@example.com", time.Now().UnixNano())
 
 	t.Run("Register Consultant", func(t *testing.T) {

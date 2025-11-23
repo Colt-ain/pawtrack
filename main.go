@@ -63,24 +63,27 @@ func main() {
 	eventRepo := repository.NewEventRepository(db)
 	dogRepo := repository.NewDogRepository(db)
 	userRepo := repository.NewUserRepository(db)
+	consultantRepo := repository.NewConsultantRepository(db)
 
 	// Services
+	authService := service.NewAuthService(userRepo)
 	eventService := service.NewEventService(eventRepo)
 	dogService := service.NewDogService(dogRepo)
 	userService := service.NewUserService(userRepo)
-	authService := service.NewAuthService(userRepo)
+	consultantService := service.NewConsultantService(consultantRepo, dogRepo)
 
 	// Handlers
+	authHandler := handler.NewAuthHandler(authService)
 	eventHandler := handler.NewEventHandler(eventService)
 	dogHandler := handler.NewDogHandler(dogService)
 	userHandler := handler.NewUserHandler(userService)
-	authHandler := handler.NewAuthHandler(authService)
 	healthHandler := handler.NewHealthHandler(db)
+	consultantHandler := handler.NewConsultantHandler(consultantService)
 
 	// Router
-	router := handler.SetupRouter(eventHandler, dogHandler, userHandler, authHandler, healthHandler, authService)
+	r := handler.SetupRouter(eventHandler, dogHandler, userHandler, authHandler, healthHandler, consultantHandler, authService)
 
-	srv := &http.Server{Addr: addr, Handler: router}
+	srv := &http.Server{Addr: addr, Handler: r}
 
 	// Graceful shutdown
 	go func() {

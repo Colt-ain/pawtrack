@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"time"
+
 	"github.com/you/pawtrack/internal/models"
 	"gorm.io/gorm"
 )
@@ -13,6 +15,7 @@ type DogRepository interface {
 	Update(dog *models.Dog) error
 	Delete(id uint) error
 	HasConsultantAccess(consultantID, dogID uint) (bool, error)
+	GrantConsultantAccess(consultantID, dogID uint) error
 }
 
 // dogRepository implementation of the dog repository
@@ -64,4 +67,14 @@ func (r *dogRepository) HasConsultantAccess(consultantID, dogID uint) (bool, err
 		Where("consultant_id = ? AND dog_id = ? AND revoked_at IS NULL", consultantID, dogID).
 		Count(&count).Error
 	return count > 0, err
+}
+
+// GrantConsultantAccess grants access for a consultant to a dog
+func (r *dogRepository) GrantConsultantAccess(consultantID, dogID uint) error {
+	access := models.ConsultantAccess{
+		ConsultantID: consultantID,
+		DogID:        dogID,
+		GrantedAt:    time.Now(),
+	}
+	return r.db.Create(&access).Error
 }

@@ -9,11 +9,14 @@ import (
 )
 
 func TestEvents(t *testing.T) {
-	client := NewTestClient(t, BaseURL)
+	client := NewTestClient(BaseURL)
+	client.SetT(t)
 
 	timestamp := time.Now().UnixNano()
 	email := fmt.Sprintf("test_event_%d@example.com", timestamp)
-	client.RegisterAndLogin("Event Owner", email, "password123")
+	// Helper to register and login
+	_, err := client.RegisterAndLogin("Test Event Owner", email, "password", "owner")
+	require.NoError(t, err)
 
 	var dogID float64
 

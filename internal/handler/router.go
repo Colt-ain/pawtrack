@@ -16,6 +16,7 @@ func SetupRouter(
 	userHandler *UserHandler,
 	authHandler *AuthHandler,
 	healthHandler *HealthHandler,
+	consultantHandler *ConsultantHandler,
 	authService service.AuthService,
 ) *gin.Engine {
 	router := gin.New()
@@ -68,6 +69,15 @@ func SetupRouter(
 			protected.GET("/users/:id", userHandler.GetUser)
 			protected.PUT("/users/:id", userHandler.UpdateUser)
 			protected.DELETE("/users/:id", userHandler.DeleteUser)
+
+			// Consultants - require authentication
+			protected.PUT("/consultants/profile", consultantHandler.UpdateProfile)
+			protected.GET("/consultants", consultantHandler.SearchConsultants)
+			protected.GET("/consultants/:id", consultantHandler.GetProfile)
+			protected.POST("/consultants/:id/invite", consultantHandler.InviteConsultant)
+
+			// Invites - require authentication
+			protected.POST("/invites/accept", consultantHandler.AcceptInvite)
 		}
 	}
 

@@ -9,13 +9,14 @@ import (
 )
 
 func TestDogs(t *testing.T) {
-	client := NewTestClient(t, BaseURL)
+	client := NewTestClient(BaseURL)
+	client.SetT(t)
 
 	timestamp := time.Now().UnixNano()
 	email := fmt.Sprintf("test_dog_%d@example.com", timestamp)
-	password := "password123"
-
-	client.RegisterAndLogin("Dog Owner", email, password)
+	// Helper to register and login
+	_, err := client.RegisterAndLogin("Test Dog Owner", email, "password", "owner")
+	require.NoError(t, err)
 
 	var dogID float64
 

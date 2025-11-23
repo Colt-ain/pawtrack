@@ -12,3 +12,8 @@ type ConsultantAccess struct {
 	GrantedAt    time.Time  `json:"granted_at" gorm:"not null"`
 	RevokedAt    *time.Time `json:"revoked_at,omitempty"`
 }
+
+// TableName specifies the table name for Consultant Access
+func (ConsultantAccess) TableName() string {
+	return "consultant_access"
+}
