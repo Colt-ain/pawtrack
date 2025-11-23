@@ -7,6 +7,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/you/pawtrack/internal/models"
+	"github.com/you/pawtrack/internal/permissions"
 	"github.com/you/pawtrack/internal/repository"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -28,12 +29,13 @@ type TokenClaims struct {
 // authService implementation of the auth service
 type authService struct {
 	userRepo  repository.UserRepository
+	permRepo  repository.PermissionRepository
 	jwtSecret []byte
 	jwtExpiry time.Duration
 }
 
 // NewAuthService creates a new auth service
-func NewAuthService(userRepo repository.UserRepository) AuthService {
+func NewAuthService(userRepo repository.UserRepository, permRepo repository.PermissionRepository) AuthService {
 	secret := os.Getenv("JWT_SECRET")
 	if secret == "" {
 		secret = "default-secret-change-me" // Fallback for dev
@@ -47,6 +49,7 @@ func NewAuthService(userRepo repository.UserRepository) AuthService {
 
 	return &authService{
 		userRepo:  userRepo,
+		permRepo:  permRepo,
 		jwtSecret: []byte(secret),
 		jwtExpiry: time.Duration(expiryHours) * time.Hour,
 	}
