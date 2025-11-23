@@ -65,6 +65,7 @@ func (h *DogHandler) CreateDog(c *gin.Context) {
 // @Description  Get a list of dogs
 // @Tags         dogs
 // @Produce      json
+// @Security     BearerAuth
 // @Success      200     {array}   models.Dog
 // @Failure      500     {object}  map[string]string
 // @Router       /dogs [get]
@@ -83,6 +84,7 @@ func (h *DogHandler) ListDogs(c *gin.Context) {
 // @Description  Get details of a specific dog
 // @Tags         dogs
 // @Produce      json
+// @Security     BearerAuth
 // @Param        id   path      int  true  "Dog ID"
 // @Success      200  {object}  models.Dog
 // @Failure      404  {object}  map[string]string
@@ -125,6 +127,7 @@ func (h *DogHandler) GetDog(c *gin.Context) {
 // @Tags         dogs
 // @Accept       json
 // @Produce      json
+// @Security     BearerAuth
 // @Param        id     path      int               true  "Dog ID"
 // @Param        dog    body      dto.UpdateDogRequest  true  "Dog Data"
 // @Success      200    {object}  models.Dog
@@ -178,6 +181,7 @@ func (h *DogHandler) UpdateDog(c *gin.Context) {
 // @Description  Delete a dog by ID
 // @Tags         dogs
 // @Produce      json
+// @Security     BearerAuth
 // @Param        id   path      int  true  "Dog ID"
 // @Success      204  {object}  nil
 // @Failure      500  {object}  map[string]string

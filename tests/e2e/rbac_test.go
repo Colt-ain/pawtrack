@@ -74,7 +74,7 @@ func TestRBAC(t *testing.T) {
 
 	t.Run("Consultant cannot see Dog initially", func(t *testing.T) {
 		status := clientC.Get(fmt.Sprintf("/dogs/%.0f", dogID), nil)
-		require.Equal(t, 404, status)
+		require.Equal(t, 403, status)
 	})
 
 	t.Run("Grant Access and Verify", func(t *testing.T) {
@@ -106,4 +106,25 @@ func grantAccess(t *testing.T, consultantEmail string, dogID float64) {
 	// Insert Access
 	err = db.Exec("INSERT INTO consultant_access (consultant_id, dog_id, granted_at) VALUES (?, ?, NOW())", user.ID, dogID).Error
 	require.NoError(t, err)
+
+	// Grant Permissions
+	permissions := []string{
+		"DOGS_VIEW_ASSIGNED",
+		"EVENTS_CREATE_ASSIGNED",
+		"EVENTS_VIEW_ASSIGNED",
+		"EVENT_COMMENTS_CREATE_ASSIGNED",
+		"EVENT_COMMENTS_VIEW_ASSIGNED",
+		"CONSULTANT_NOTES_CREATE",
+		"CONSULTANT_NOTES_VIEW_OWN",
+		"CONSULTANT_NOTES_UPDATE_OWN",
+	}
+
+	for _, perm := range permissions {
+		var permID int
+		err = db.Table("permissions").Select("id").Where("name = ?", perm).Scan(&permID).Error
+		require.NoError(t, err)
+
+		err = db.Exec("INSERT INTO user_permissions (user_id, permission_id) VALUES (?, ?) ON CONFLICT DO NOTHING", user.ID, permID).Error
+		require.NoError(t, err)
+	}
 }

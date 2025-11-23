@@ -34,8 +34,8 @@ func NewEventHandler(service service.EventService, storage storage.FileStorage) 
 // @Tags         events
 // @Accept       multipart/form-data
 // @Produce      json
+// @Security     BearerAuth
 // @Param        data  formData  string  true  "Event Data (JSON)"
-// @Param        file  formData  file    false "File attachment"
 // @Success      201   {object}  models.Event
 // @Failure      400   {object}  map[string]string
 // @Failure      500   {object}  map[string]string
@@ -106,6 +106,7 @@ func (h *EventHandler) CreateEvent(c *gin.Context) {
 // @Description  Get paginated events with filters and sorting
 // @Tags         events
 // @Produce      json
+// @Security     BearerAuth
 // @Param        from_date    query     string  false  "From date (YYYY-MM-DD)"
 // @Param        to_date      query     string  false  "To date (YYYY-MM-DD)"
 // @Param        types        query     string  false  "Event types (comma-separated)"
@@ -155,6 +156,7 @@ func (h *EventHandler) ListEvents(c *gin.Context) {
 // @Description  Get details of a specific event
 // @Tags         events
 // @Produce      json
+// @Security     BearerAuth
 // @Param        id   path      int  true  "Event ID"
 // @Success      200  {object}  models.Event
 // @Failure      404  {object}  map[string]string
@@ -181,6 +183,7 @@ func (h *EventHandler) GetEvent(c *gin.Context) {
 // @Description  Delete an event by ID
 // @Tags         events
 // @Produce      json
+// @Security     BearerAuth
 // @Param        id   path      int  true  "Event ID"
 // @Success      204  {object}  nil
 // @Failure      500  {object}  map[string]string

@@ -7,7 +7,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/you/pawtrack/internal/models"
-	"github.com/you/pawtrack/internal/permissions"
+	
 	"github.com/you/pawtrack/internal/repository"
 	"golang.org/x/crypto/bcrypt"
 )

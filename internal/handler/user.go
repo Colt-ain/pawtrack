@@ -64,6 +64,7 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 // @Description  Get a list of all users
 // @Tags         users
 // @Produce      json
+// @Security     BearerAuth
 // @Success      200     {array}   models.User
 // @Failure      500     {object}  map[string]string
 // @Router       /users [get]
@@ -82,6 +83,7 @@ func (h *UserHandler) ListUsers(c *gin.Context) {
 // @Description  Get details of a specific user
 // @Tags         users
 // @Produce      json
+// @Security     BearerAuth
 // @Param        id   path      int  true  "User ID"
 // @Success      200  {object}  models.User
 // @Failure      404  {object}  map[string]string
@@ -109,6 +111,7 @@ func (h *UserHandler) GetUser(c *gin.Context) {
 // @Tags         users
 // @Accept       json
 // @Produce      json
+// @Security     BearerAuth
 // @Param        id     path      int                true  "User ID"
 // @Param        user   body      dto.UpdateUserRequest  true  "User Data"
 // @Success      200    {object}  models.User
@@ -148,6 +151,7 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 // @Description  Delete a user by ID
 // @Tags         users
 // @Produce      json
+// @Security     BearerAuth
 // @Param        id   path      int  true  "User ID"
 // @Success      204  {object}  nil
 // @Failure      500  {object}  map[string]string

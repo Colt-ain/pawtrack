@@ -24,6 +24,7 @@ func NewConsultantHandler(service service.ConsultantService) *ConsultantHandler 
 // @Tags         consultants
 // @Accept       json
 // @Produce      json
+// @Security     BearerAuth
 // @Param        profile  body      dto.UpdateProfileRequest  true  "Profile Data"
 // @Success      200      {object}  models.ConsultantProfile
 // @Failure      400      {object}  map[string]string
@@ -57,6 +58,7 @@ func (h *ConsultantHandler) UpdateProfile(c *gin.Context) {
 // @Description  Get profile by ID
 // @Tags         consultants
 // @Produce      json
+// @Security     BearerAuth
 // @Param        id   path      int  true  "Consultant ID"
 // @Success      200  {object}  dto.ConsultantProfileResponse
 // @Failure      404  {object}  map[string]string
@@ -79,6 +81,7 @@ func (h *ConsultantHandler) GetProfile(c *gin.Context) {
 // @Description  Search consultants by name, services, breeds, location
 // @Tags         consultants
 // @Produce      json
+// @Security     BearerAuth
 // @Param        query     query     string  false  "Search query"
 // @Param        services  query     string  false  "Filter by services"
 // @Param        breeds    query     string  false  "Filter by breeds"
@@ -116,6 +119,7 @@ func (h *ConsultantHandler) SearchConsultants(c *gin.Context) {
 // @Tags         consultants
 // @Accept       json
 // @Produce      json
+// @Security     BearerAuth
 // @Param        id       path      int                      true  "Consultant ID"
 // @Param        request  body      dto.CreateInviteRequest  true  "Invite Data"
 // @Success      201      {object}  dto.InviteResponse
@@ -152,6 +156,7 @@ func (h *ConsultantHandler) InviteConsultant(c *gin.Context) {
 // @Description  Accept an invitation to manage a dog (Consultant only)
 // @Tags         invites
 // @Produce      json
+// @Security     BearerAuth
 // @Param        token    query     string  true  "Invite Token"
 // @Success      200      {object}  map[string]string
 // @Failure      400      {object}  map[string]string

@@ -40,4 +40,8 @@ test-e2e:
 	docker run --rm -v $$(pwd):/app -w /app --network pawtrack_default \
 		-e E2E_BASE_URL="http://app:8080/api/v1" \
 		-e E2E_DB_DSN="postgres://pawtrack:pawtrack@db:5432/pawtrack?sslmode=disable" \
-		golang:1.23 go test -v ./tests/e2e/...
+		golang:1.23 go test -v ./tests/e2e/...; \
+	EXIT_CODE=$$?; \
+	echo "Cleaning up database..."; \
+	docker run --rm --network pawtrack_default postgres:16-alpine psql "postgres://pawtrack:pawtrack@db:5432/pawtrack?sslmode=disable" -c "TRUNCATE TABLE users CASCADE;"; \
+	exit $$EXIT_CODE
